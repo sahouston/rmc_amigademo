@@ -9,11 +9,17 @@
 
 	INCLUDE "Blitter-Register-List.S"
 
-w	= 320				;screen width, height, depth
-h	= 256
+logow   = 320				;logo width
+logowb  = logow/8			;byte-width of logo
+logobpls= 4				;logo bitplanes
+
+screenw = 320				;onscreen pixels
+w	= screenw+32			;buffer width (320 + 32 offscreen 
+					;for scrolltext plotting)
+h	= 256				;height
 bpls	= 4				;bitplanes
-bplwb	= w/16*2			;byte-width of 1 bitplane line
-bwid	= bpls*bplwb			;byte-width of 1 line, all bpls
+bplwb	= w/8				;byte-width of 1 bitplane line
+bwid	= bplwb*bpls			;byte-width of 1 line, all bpls
 
 MaxBobs	= 8
 
@@ -49,9 +55,9 @@ Demo:					;a4=VBR, a6=Custom Registers Base addr
     *--- setup and start copper ---*
 	; Setup bitplane pointers for logo area
 	lea Logo,a0
-	moveq #bplwb,d0
+	moveq #logowb,d0
 	lea LogoBplPtrs+2,a1
-	moveq #bpls-1,d1
+	moveq #logobpls-1,d1
 	bsr.w PokePtrs
 
 	; Setup bitplane pointers for bob area
@@ -302,9 +308,6 @@ Copper:
 	dc.w $94,$d0			;and stop for standard screen.
 
 	dc.w $106,$0c00			;(AGA compat. if any Dual Playf. mode)
-	dc.w $108,bwid-bplwb		;modulos
-	dc.w $10a,bwid-bplwb
-
 	dc.w $102,0			;Scroll register (and playfield pri)
 
 	; Screen area for logo
@@ -325,6 +328,8 @@ LogoBplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
+	dc.w $108,logowb*4-screenw/8
+	dc.w $10a,logowb*4-screenw/8
 	dc.w $100,bpls*$1000+$200	;enable bitplanes
 
 	; Screen area for bobs
@@ -343,6 +348,8 @@ BplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
+	dc.w $108,bplwb*4-screenw/8		;modulos - takes offscreen 32
+	dc.w $10a,bplwb*4-screenw/8		;pixels into consideration
 
 	; Bobs palette
 	dc.w $0180,$0000,$0182,$0ddd,$0184,$08be,$0186,$0fff
