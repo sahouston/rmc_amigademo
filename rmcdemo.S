@@ -1,6 +1,6 @@
 
 ; Set tab size 8 for correct alignment
-; Compatible with asmtwo
+; Assemble with asmtwo
 
     	*** MiniStartup by Photon ***
 	INCLUDE "PhotonsMiniWrapper1.04!.S"
@@ -11,9 +11,9 @@
 
 w	= 320				;screen width, height, depth
 h	= 256
-bpls	= 4				;handy values:
+bpls	= 4				;bitplanes
 bplwb	= w/16*2			;byte-width of 1 bitplane line
-bwid	= bpls*bplwb			;byte-width of 1 pixel line (all bpls)
+bwid	= bpls*bplwb			;byte-width of 1 line, all bpls
 
 MaxBobs	= 8
 
@@ -107,7 +107,7 @@ MainLoop:
 					; height: (45px * 4 bpls) << 6 
 					; width:  4 words (64 px)
 
-  *--- clear bobs ---*			;the old ones left on this screen
+  *--- clear old bobs ---*		;the old ones left on this screen
 	move.l DrawBuffer(PC),a4
 	lea -MaxBobs*4(a4),a4		;Old bob mem locations are stored just
 					;before the start of the screen
@@ -164,7 +164,7 @@ bobloop:
 
 	bsr.w DrawBob
 	move.l a3,(a4)+			;save bob's screen addr
-  *--- step to next bob ---*
+	;step to next bob
 	lea WaveSteps(PC),a3
 	add.w (a3)+,d4
 	add.w (a3)+,d5
@@ -365,6 +365,9 @@ RBob:
 
 Mask:
 	INCBIN	"media/bob.mask"
+
+Font:
+	INCBIN "media/FastCarFont.284x100x4"
 
 *******************************************************************************
 	SECTION ChipBuffers,BSS_C	;BSS doesn't count toward exe size
