@@ -9,27 +9,28 @@
 
 	INCLUDE "Blitter-Register-List.S"
 
-logow   = 320				;logo width
-logowb  = logow/8			;byte-width of logo
-logobpls= 4				;logo bitplanes
+; Logo screen area dims
+logow   	= 320			;logo width
+logoh		= 44			;logo height
+logowb  	= logow/8		;byte-width of logo
+logobpls	= 4			;logo bitplanes
 
-screenw = 320				;onscreen pixels
-w	= screenw+32			;buffer width (320 + 32 offscreen 
+; Bob & scrolltext screen area dims
+screenw 	= 320			;onscreen pixels
+bufferw		= screenw+32		;buffer width (320 + 32 offscreen 
 					;for scrolltext plotting)
-h	= 256				;height
-bpls	= 4				;bitplanes
-bplwb	= w/8				;byte-width of 1 bitplane line
-bwid	= bplwb*bpls			;byte-width of 1 line, all bpls
+bufferh		= 256-logoh		;height
+bpls		= 4			;bitplanes
+bplwb		= bufferw/8		;byte-width of 1 bitplane line
+bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
+
+; Font bitmap dims
+fontw		= 288
+fonth		= 100
+fontbpls 	= 4
+fontwb		= fontw/8
 
 MaxBobs	= 8
-
-********** Macros **********
-
-WAITBLIT:macro
-	tst.w (a6)			;for compatibility with A1000
-.wb\@:	btst #6,2(a6)
-	bne.s .wb\@
-	endm
 
 ********** Demo **********		;Demo-specific non-startup code below.
 
@@ -97,7 +98,7 @@ MainLoop:
 	ENDR
 
   *--- init for bob blits ---*
-	WAITBLIT
+	bsr WaitBlitter
 	; Note: the graphic is only 3 words (48 px) wide
 	; but we read an extra word and mask it out to 
 	; allow for scrolling using bit shifting.
@@ -119,7 +120,7 @@ MainLoop:
 					;before the start of the screen
 
 	REPT MaxBobs
-	WAITBLIT
+	bsr WaitBlitter
 	move.l #$01000000,BLTCON0(a6)
 	move.l (a4)+,BLTDPTH(a6)
 	beq.s *+6 			; If old blt locations are 0 (first 
@@ -131,10 +132,10 @@ MainLoop:
 	; Bob src is set in bob loop
 	move.l DrawBuffer(PC),a1
 	; Central bob position
-	; y = screenheight / 2 - halfbobheight = 106
+	; y = 120
 	; x = bitplanewidth in bytes of all planes / 2 - 4 bytes (half of bob 
 	;     width)
-	add.l #106*bwid+bplwb/2-4,a1	; centre of screen
+	add.l #120*bwid+bplwb/2-4,a1
 	lea Mask,a2
 
   *--- draw bobs ---*
@@ -186,6 +187,9 @@ bobloop:
 	blt bobloop
   * --- end bob loop --- *
 
+	lea ScrollText(PC),a0
+	bsr PlotChar
+
 	add.w #1,FrameCounter		; FrameCounter++
 	cmp.w #10,FrameCounter		
 	bne testMouse
@@ -205,6 +209,52 @@ testMouse:
 	rts
 
 ********** Demo Routines **********
+
+; *** PlotChar ***
+; blt a character from the font to the scrolltext 
+; offscreen area
+; a0: ptr to ascii value of char
+PlotChar:
+row 	= fontw*fontbpls*20/8		; Chars are 20 pixels high
+col 	= 32/8				; and 32 pixels wide
+plotY 	= bufferh-20
+plotX 	= 80;w-32
+
+	movem.l d0-a6,-(sp)
+	lea $dff000,a6
+	bsr WaitBlitter
+
+	moveq #0,d0
+	move.b (a0)+,d0			;ASCII value
+	move.b d0,LastChar
+
+	sub.w #32,d0
+	lea FontTbl(PC),a0		;Get position of char
+	move.b (a0,d0.w),d0		;in the font bitmap
+	divu #9,d0			;row
+	move.l d0,d1
+	swap d1				;remainder (column)	
+
+	mulu #row,d0
+	mulu #col,d1
+
+	add.l d1,d0			;offset into font bitmap
+	add.l #Font,d0
+
+	move.l #$09f00000,BLTCON0(a6)
+	move.l #$ffffffff,BLTAFWM(a6)
+	move.l d0,BLTAPTH(a6)
+	move.l DrawBuffer(PC),a1
+	add.l #bwid*plotY+plotX/8,a1	;Blt Dest
+	;add.l #10,a1
+	move.l a1,BLTDPTH(a6)
+	move.w #fontwb-col,BLTAMOD(a6)
+	move.w #bplwb-col,BLTDMOD(a6)
+
+	move.w #20*fontbpls*64+2,BLTSIZE(a6) ;H=20, W=32 (2 words)
+	movem.l (sp)+,d0-a6
+	rts
+
 
 ; *** DrawBob ***
 ; a0: bob
@@ -226,7 +276,7 @@ DrawBob:
 	add.w d0,d1
 	lea (a1,d1.w),a3
     *--- last:poke only nec. regs ---*
-	WAITBLIT
+	bsr WaitBlitter
 	move.l XtblCookie(PC,d3.w),BLTCON0(a6)	;shifts+minterm
 	move.l a3,BLTCPTH(a6)		;C dest
 	move.l a0,BLTBPTH(a6)		;B mask (movem.l possible for these 3)
@@ -284,6 +334,29 @@ BobPtrs:
 		dc.l	NeilBob		; Pointer to the Neil bob
 BobIdx:		dc.w 0			; Index into BobPtrs (used in bob draw
 					; loop as no registers free)
+
+; FontTbl maps char to position in font
+FontTbl:	dc.b  43,38
+		blk.b 5,0
+		dc.b  42
+		blk.b 4,0
+		dc.b  37,40,36,41
+		dc.b  26,27,28,29,30,31,32,33,34,35
+		blk.b 5,0
+		dc.b  39,0
+		dc.b  0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21
+		dc.b  22,23,24,25
+		EVEN
+
+ScrollPtr:
+		dc.l ScrollText
+ScrollText:
+		dc.b "JUST FOR THE RETRO FEELING OF IT! YOU DIG??"
+		blk.b bufferw/32,' '
+ScrollTextWrap:
+
+LastChar:	dc.b 0
+		EVEN
 
 WaveSpeeds:	;all numbers must be even, since the sine values are word size.
 		dc.w -9*2,5*2,7*2,-11*2
@@ -357,6 +430,18 @@ BplPtrs:
 	dc.w $0190,$0eb9,$0192,$0853,$0194,$0579,$0196,$0356
 	dc.w $0198,$099a,$019a,$0877,$019c,$0544,$019e,$0e00
 
+	; Wait for the scanline after the bob area
+	; bob area height = screen height - logo height - scrolltext height
+	; 256-44-20 = 192 ($C0)
+	; Scanline after bob area = $58 + $C0 = $118
+	; Need to wait for $ff then $19 to get $118
+	dc.w $ff05,$fffe	
+	dc.w $1905,$fffe
+	dc.w $0180,$0000,$0182,$057a,$0184,$0235,$0186,$0358
+	dc.w $0188,$079a,$018a,$08bc,$018c,$09de,$018e,$0aff
+	dc.w $0190,$0000,$0192,$0000,$0194,$0000,$0196,$0000
+	dc.w $0198,$0000,$019a,$0000,$019c,$0000,$019e,$0000
+
 	dc.w $ffdf,$fffe		;allow VPOS>$ff
 	dc.w $ffff,$fffe		;magic value to end copperlist
 CopperE:
@@ -384,13 +469,13 @@ LastBobs:
 	ds.l MaxBobs			; Store addresses of previous bob
 					; locations
 Screen:	
-	ds.b (h-44)*bwid		; Define storage for buffer 1, exclude
+	ds.b bufferh*bwid		; Define storage for buffer 1, exclude
 					; height of logo
 LastBobs2:
 	ds.l MaxBobs			; Store addresses of previous bob
 					; locations
 Screen2:
-	ds.b (h-44)*bwid		; two buffers
+	ds.b bufferh*bwid		; two buffers
 
 	END
 
