@@ -187,13 +187,32 @@ bobloop:
 	blt bobloop
   * --- end bob loop --- *
 
-	lea ScrollText(PC),a0
-	bsr PlotChar
+  *--- Move scrolltext ---*
+	bsr Scrollit
+
+  *--- Plot next scrolltext char ---*
+	move.w ScrollCtr(PC),d0		; ScrollCounter
+	addq.w #4,d0			; Scrolled 4 pixels
+	cmp.w #32,d0			; Don't plot until scrolled 32 px
+	blo.s .noplot
+
+	clr.w d0			; Reset ScrollCounter
+	move.l ScrollPtr(PC),a0		; Pointer to the char to plot
+	bsr PlotChar			; Plot it	
+	addq.l #1,a0			; Next char
+	cmp.l #ScrollTextWrap,a0	; Check if we're at the end of the
+	bne.s .nowrap			; scrolltxt.
+	lea Scrolltext,a0		; Yes, go back to the start
+.nowrap
+	move.l a0,ScrollPtr		; Store ptr to the next char to plot
+
+.noplot:
+	move.w d0,ScrollCtr		; Store the ScrollCounter
 
 	add.w #1,FrameCounter		; FrameCounter++
-	cmp.w #10,FrameCounter		
+	cmp.w #10,FrameCounter		; Test if 10 frames have elapsed
 	bne testMouse
-					; 10 frames have elapsed
+					; Yes, shift the bobs
 	move.w #0,FrameCounter 		; Reset frame counter
 	add.w #1,BobShift		; Shift bobs
 	cmp.w #8,BobShift
@@ -218,15 +237,14 @@ PlotChar:
 row 	= fontw*fontbpls*20/8		; Chars are 20 pixels high
 col 	= 32/8				; and 32 pixels wide
 plotY 	= bufferh-20
-plotX 	= 80;w-32
+plotX 	= bufferw-32
 
 	movem.l d0-a6,-(sp)
 	lea $dff000,a6
 	bsr WaitBlitter
 
 	moveq #0,d0
-	move.b (a0)+,d0			;ASCII value
-	move.b d0,LastChar
+	move.b (a0),d0			;ASCII value
 
 	sub.w #32,d0
 	lea FontTbl(PC),a0		;Get position of char
@@ -246,12 +264,38 @@ plotX 	= 80;w-32
 	move.l d0,BLTAPTH(a6)
 	move.l DrawBuffer(PC),a1
 	add.l #bwid*plotY+plotX/8,a1	;Blt Dest
-	;add.l #10,a1
 	move.l a1,BLTDPTH(a6)
 	move.w #fontwb-col,BLTAMOD(a6)
 	move.w #bplwb-col,BLTDMOD(a6)
 
 	move.w #20*fontbpls*64+2,BLTSIZE(a6) ;H=20, W=32 (2 words)
+	movem.l (sp)+,d0-a6
+	rts
+
+; *** Scrollit ***
+Scrollit:
+bltoffs	=(bufferh-20)*bplwb*4
+blth	=20
+bltw	=bufferw/16
+bltskip	=0				;modulo
+brcorner=blth*bplwb*4-2
+
+	movem.l d0-a6,-(sp)
+	lea $dff000,a6
+	bsr WaitBlitter
+
+	move.l #$49f00002,BLTCON0(a6)	; Shift by 4 pixels
+	move.l #$ffffffff,BLTAFWM(a6)
+	move.l ViewBuffer(PC),a1	; Read from onscreen buffer
+	move.l DrawBuffer(PC),a2	; Write to offscreen buffer
+	add.l  #bltoffs+brcorner,a1
+	add.l  #bltoffs+brcorner,a2
+	move.l a1,BLTAPTH(a6)
+	move.l a2,BLTDPTH(a6)
+	move.w #bltskip,BLTAMOD(a6)
+	move.w #bltskip,BLTDMOD(a6)
+
+	move.w #blth*4*64+bltw,BLTSIZE(a6)
 	movem.l (sp)+,d0-a6
 	rts
 
@@ -351,12 +395,14 @@ FontTbl:	dc.b  43,38
 ScrollPtr:
 		dc.l ScrollText
 ScrollText:
-		dc.b "JUST FOR THE RETRO FEELING OF IT! YOU DIG??"
+		dc.b "WELCOME TO RMC RETRO!!! THE CAVE IS NOW OPEN AND WE WELCOME "
+		dc.b "ALL VISITORS TO COME AND MARVEL AT OUR COLLECTION OF AMAZING "
+		dc.b "AMIGAS..... AND SOME OTHER COMPUTERS AS WELL. "
 		blk.b bufferw/32,' '
 ScrollTextWrap:
 
-LastChar:	dc.b 0
-		EVEN
+ScrollCtr:
+		dc.w 0
 
 WaveSpeeds:	;all numbers must be even, since the sine values are word size.
 		dc.w -9*2,5*2,7*2,-11*2
