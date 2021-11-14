@@ -1,4 +1,7 @@
 
+; RMC Retro Amiga Demo
+; https://www.rmcretro.com/
+;
 ; Set tab size 8 for correct alignment
 ; Assemble with asmtwo
 
@@ -397,7 +400,7 @@ ScrollPtr:
 ScrollText:
 		dc.b "WELCOME TO RMC RETRO!!! THE CAVE IS NOW OPEN AND WE WELCOME "
 		dc.b "ALL VISITORS TO COME AND MARVEL AT OUR COLLECTION OF AMAZING "
-		dc.b "AMIGAS..... AND SOME OTHER COMPUTERS AS WELL. "
+		dc.b "AMIGAS AND LOTS MORE. "
 		blk.b bufferw/32,' '
 ScrollTextWrap:
 
