@@ -27,3 +27,4 @@ To run on [WinUAE](https://www.winuae.net/).
 * Add music
 * Bouncing copper bars?
 
+I am looking for contributions to the scrolltext. If you would like to include a message please open a github issue, pull request or email me steven@shouston.net
