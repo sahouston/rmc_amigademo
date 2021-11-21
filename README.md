@@ -16,9 +16,9 @@ To run on [WinUAE](https://www.winuae.net/).
 * Once the AmigaDOS prompt appears type asmtwo
 * At the ALLOCATE Fast/Chip/Abs prompt type chip
 * For WORKSPACE KB> enter 64
-* At the Ready prompt type r then enter
+* At the Ready prompt type r then hit return
 * At the FILENAME> prompt enter rmcdemo.S
-* Then type a then enter to assemble and j then enter to run. Click the left mouse button to exit the demo.
+* Then type a then return to assemble and j then return to run. Click the left mouse button to exit the demo.
 
 ## ToDo
 * Add a starfield
