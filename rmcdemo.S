@@ -41,7 +41,7 @@ MaxBobs	= 8
 Init:
 	move.l #VBint,$6c(a4)
 	move.w #$c020,$9a(a6)
-	move.w #$87c0,DMACON(a6)
+	move.w #$87e0,DMACON(a6)
     *--- clear last bob ptrs ---*
 	lea LastBobs,a0
 	lea LastBobs2,a1
@@ -55,6 +55,248 @@ Init:
 	lea Screen2,a1
 	bsr.w ClearScreen
 	bsr WaitBlitter
+
+    *--- init sprites ---*
+	; Setup copper list to write sprite
+	; pointers each frame.
+	lea SprP,a1			; Pos in copper list that 
+					; writes sprite pointers
+	lea StarSpr,a0			; The sprite address in chip mem
+	move.l a0,d1
+	moveq #2-1,d0			; 2 sprites
+.sprpl:
+	swap d1
+	move.w d1,2(a1)			; sprite address high bits
+	swap d1
+	move.w d1,6(a1)			; sprite address low bits
+	addq.w #8,a1
+	add.l #(StarSpr2-StarSpr),d1	; Move to next sprite
+	dbf d0,.sprpl			
+
+	; Sprites can't be turned off. Unused sprites are just
+	; empty data lists: dc.w 0,0
+	lea NullSpr,a0
+	move.l a0,d1
+	moveq #6-1,d0			; 6 unused sprites
+.sprpl2:
+	swap d1
+	move.w d1,2(a1)
+	swap d1
+	move.w d1,6(a1)
+	addq.w #8,a1
+	dbf d0,.sprpl2
+
+	; Init the sprite data 
+	lea StarSpr,a1
+	moveq #$2c,d0
+	moveq #26-1,d7
+.skyl:	
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	dbf d7,.skyl
+
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+    *--- below line $ff ---*
+
+	moveq #%00000110,d6
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	moveq #5-1,d7
+.floorl:	
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	dbf d7,.floorl
+
+    *--- odd lines sprites ---*
+
+	lea StarSpr2,a1
+	moveq #$2d,d0
+	moveq #26-1,d7
+.skyl2:
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1
+
+	dbf d7,.skyl2
+
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	addq.w #5,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b #2,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+    *--- below line $ff ---*
+
+	moveq #%00000110,d6
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	moveq #5-1,d7
+.floorl2:
+	move.b d0,(a1)+			;vstart
+	addq.b #1,(a1)+			;add speed to hpos
+	addq.b #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #2,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #1,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	move.b d0,(a1)+
+	addq.b #3,(a1)+
+	addq.b #1,d0
+	move.b d0,(a1)+
+	addq.b #1,d0			;increase vstop value
+	move.b d6,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+
+	dbf d7,.floorl2
 
     *--- setup and start copper ---*
 	; Setup bitplane pointers for logo area
@@ -94,6 +336,94 @@ MainLoop:
 	moveq #bpls-1,d1
 	bsr.w PokePtrs
   *--- ...draw into the other ---*
+
+  *--- move starfield sprites ---*
+	lea StarSpr+1,a1
+	moveq #$2c,d0
+	moveq #26-1,d7
+.skyl:	
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+
+	dbf d7,.skyl	
+
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+
+    *--- below line $ff ---*
+
+	moveq #%00000110,d6
+
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1
+
+	moveq #5-1,d7
+.floorl:	
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1
+
+	dbf d7,.floorl
+
+    *--- odd lines sprites ---*
+
+	lea StarSpr2+1,a1
+	moveq #$2d,d0
+	moveq #26-1,d7
+.skyl2:	
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+
+	dbf d7,.skyl2
+
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+
+    *--- below line $ff ---*
+
+	moveq #%00000110,d6
+
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1
+
+	moveq #5-1,d7
+.floorl2:	
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1
+
+	dbf d7,.floorl2
+
 	
   *--- move start of curves ---*	;the "nose" of the snake
 	move.w #1023*2,d3		;keep within curve size, used below
@@ -426,6 +756,55 @@ SinEnd:
 *******************************************************************************
 	SECTION ChipData,DATA_C		;declared data that must be in chipmem
 *******************************************************************************
+; Sprites for starfield
+StarSpr:
+.x:	SET 1
+	REPT 32
+.tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $8000,$0000
+.x:	SET (.x+2)&$ffff
+.tmpx:	SET ((.x*$753+$eadbeefd)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $0000,$8000
+.x:	SET (.x+4)&$ffff
+.tmpx:	SET ((.x*$755+$adbeefde)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $8000,$0000
+.x:	SET (.x+8)&$ffff
+.tmpx:	SET ((.x*$757+$dbeefdea)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $c000,$c000
+.x:	SET (.x+16)&$ffff
+	ENDR
+	dc.w 0,0
+
+StarSpr2:
+.x:	SET $77
+	REPT 32
+.tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $8000,$0000
+.x:	SET (.x+2)&$ffff
+.tmpx:	SET ((.x*$753+$eadbeefd)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $0000,$8000
+.x:	SET (.x+4)&$ffff
+.tmpx:	SET ((.x*$755+$adbeefde)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $8000,$0000
+.x:	SET (.x+8)&$ffff
+.tmpx:	SET ((.x*$757+$dbeefdea)/(.x&$55))&$ff
+	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
+	dc.w $c000,$c000
+.x:	SET (.x+16)&$ffff
+	ENDR
+	dc.w 0,0
+
+NullSpr:
+;	dc.w $2a20,$2b00
+;	dc.w 0,0
+	dc.w 0,0
 
 Copper:
 	dc.w $1fc,0			;Slow fetch mode, remove if AGA demo.
@@ -436,9 +815,30 @@ Copper:
 
 	dc.w $106,$0c00			;(AGA compat. if any Dual Playf. mode)
 	dc.w $102,0			;Scroll register (and playfield pri)
+	dc.w $104,0			;Sprites behind playfields
+
+	dc.w $1a2,$99b			;sprite colors
+	dc.w $1a4,$cce
+	dc.w $1a6,$fff
+SprP:
+	dc.w $120,0
+	dc.w $122,0
+	dc.w $124,0
+	dc.w $126,0
+	dc.w $128,0
+	dc.w $12a,0
+	dc.w $12c,0
+	dc.w $12e,0
+	dc.w $130,0
+	dc.w $132,0
+	dc.w $134,0
+	dc.w $136,0
+	dc.w $138,0
+	dc.w $13a,0
+	dc.w $13c,0
+	dc.w $13e,0
 
 	; Screen area for logo
-
 Palette:
 	; Logo palette
 	dc.w $0180,$0000,$0182,$0c34,$0184,$045a,$0186,$03c6
