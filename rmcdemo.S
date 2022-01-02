@@ -35,14 +35,14 @@ fontwb		= fontw/8
 
 MaxBobs	= 8
 
-********** Demo **********		;Demo-specific non-startup code below.
-
-Demo:					;a4=VBR, a6=Custom Registers Base addr
-    *--- init ---*
+; Init - One time initialization code
+; a4: VBR
+; a6: Custom Registers Base addr
+Init:
 	move.l #VBint,$6c(a4)
 	move.w #$c020,$9a(a6)
 	move.w #$87c0,DMACON(a6)
-    *--- clear old bob ptrs ---*
+    *--- clear last bob ptrs ---*
 	lea LastBobs,a0
 	lea LastBobs2,a1
 	moveq #MaxBobs-1,d0
@@ -72,13 +72,18 @@ Demo:					;a4=VBR, a6=Custom Registers Base addr
 	bsr.w PokePtrs	
 
 	move.l #Copper,$80(a6)
+	rts
 
-********************  main loop  ********************
+; Demo - routine is called from PhotonsMiniWrapper
+; a4: VBR
+; a6: Custom Registers Base addr
+Demo:					
+	bsr Init
 	move.w #0,d4			; index into sine table
 MainLoop:
-	move.w #$12c,d0			;No buffering, so wait until raster
-	bsr.w WaitRaster		;is below the Display Window.
   *--- swap buffers ---*
+	move.w #$12c,d0			; Wait until raster is below the Display Window 
+	bsr.w WaitRaster		; (vpos 300)
 	movem.l DrawBuffer(PC),a2-a3
 	exg a2,a3
 	movem.l a2-a3,DrawBuffer	;draw into a2, show a3
@@ -424,8 +429,8 @@ SinEnd:
 
 Copper:
 	dc.w $1fc,0			;Slow fetch mode, remove if AGA demo.
-	dc.w $8e,$2c81			;238h display window top, left
-	dc.w $90,$2cc1			;and bottom, right.
+	dc.w $8e,$2c81			;display window top, left: 129,44
+	dc.w $90,$2cc1			;and bottom, right: 448,300 (320x256)
 	dc.w $92,$38			;Standard bitplane dma fetch start
 	dc.w $94,$d0			;and stop for standard screen.
 
