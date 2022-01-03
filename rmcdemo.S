@@ -11,6 +11,7 @@
 ********** Constants **********
 
 	INCLUDE "Blitter-Register-List.S"
+	INCLUDE "P61-Options.S"
 
 ; Logo screen area dims
 logow   	= 320			;logo width
@@ -55,6 +56,17 @@ Init:
 	lea Screen2,a1
 	bsr.w ClearScreen
 	bsr WaitBlitter
+
+    *--- Call P61_Init ---*
+	movem.l d0-a6,-(sp)
+
+	lea Module1,a0
+	sub.l a1,a1
+	sub.l a2,a2
+	moveq #0,d0
+	jsr P61_Init
+
+	movem.l (sp)+,d0-a6
 
     *--- init sprites ---*
 	; Setup copper list to write sprite
@@ -561,8 +573,11 @@ bobloop:
 testMouse:
 	;move.w #$323,$180(a6)		;show rastertime left down to $12c
 	btst #6,$bfe001			;Left mouse button not pressed?
-	bne.w MainLoop			;then loop
+	bne.w MainLoop			;then loop	
   *--- exit ---*
+	movem.l d0-a6,-(sp)
+	jsr P61_End
+	movem.l (sp)+,d0-a6  
 	rts
 
 ********** Demo Routines **********
@@ -702,6 +717,11 @@ VBint:					;Blank template VERTB interrupt
 	move.w d0,$9c(a6)
 .notvb:	movem.l (sp)+,d0/a6		;restore
 	rte
+
+********** PLAYROUTINE CODE **********	
+	even
+Playrtn:
+	include "P6112/P6112-Play.i"	
 
 ********** Fastmem Data **********
 
@@ -914,6 +934,9 @@ Mask:
 
 Font:
 	INCBIN "media/FastCarFont.284x100x4"
+
+Module1:
+	incbin "media/P61.new_ditty"		;usecode $c00b43b	
 
 *******************************************************************************
 	SECTION ChipBuffers,BSS_C	;BSS doesn't count toward exe size
