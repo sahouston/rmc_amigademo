@@ -2,14 +2,15 @@
 ; RMC Retro Amiga Demo
 ; https://www.rmcretro.com/
 ;
+; Coding - haiZe (thanks to Photon from Scoopex for 
+;	   the AsmSkool youtube series and the Developing 
+;          Demo Effects magazine articles)
+; Music  - Logos & Scrollers by H0ffman
+;
 ; Set tab size 8 for correct alignment
 ; Assemble with asmtwo
 
-    	*** MiniStartup by Photon ***
 	INCLUDE "PhotonsMiniWrapper1.04!.S"
-
-********** Constants **********
-
 	INCLUDE "Blitter-Register-List.S"
 	INCLUDE "P61-Options.S"
 

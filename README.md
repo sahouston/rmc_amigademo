@@ -4,7 +4,7 @@ To celebrate the opening of the [RMC Retro Cave](https://www.rmcretro.com/visit-
 
 Photon from Scoopex has created some incredibly helpful resources on Amiga demos: [coppershade.org](http://coppershade.org/) and the [AsmSkool series on youtube](https://www.youtube.com/playlist?list=PLtjBEWQ66xeLEqAUssJEDQRV1cbQR2-xk)
 
-The legendary DJ H0ffman has kindly allowed me to use one of his tracks for the music, it's called Logos & Scrollers.
+The legendary DJ H0ffman has kindly allowed me to use one of his tracks for the music: Logos & Scrollers.
 
 This demo is still a work in progress, you can see a clip of the [current version on youtube.](https://www.youtube.com/watch?v=a2sXai7aqsA)
 
