@@ -3,7 +3,8 @@ P61mode	=1	;Try other modes ONLY IF there are no Fxx commands >= 20.
 
 ;;    ---  options common to all P61modes  ---
 
-usecode=$c00b43b;CHANGE! to the USE hexcode from P61con for a big 
+usecode=$1c46953e
+		;CHANGE! to the USE hexcode from P61con for a big 
 		;CPU-time gain! (See module usecodes at end of source)
 		;Multiple songs, single playroutine? Just "OR" the 
 		;usecodes together!
@@ -13,7 +14,7 @@ usecode=$c00b43b;CHANGE! to the USE hexcode from P61con for a big
 
 P61pl=usecode&$400000
 
-split4	=1	;Great time gain, but INCOMPATIBLE with F03, F02, and F01
+split4	=0	;Great time gain, but INCOMPATIBLE with F03, F02, and F01
 		;speeds in the song! That's the ONLY reason it's default 0.
 		;So ==> PLEASE try split4=1 in ANY mode!
 		;Overrides splitchans to decrunch 1 chan/frame.

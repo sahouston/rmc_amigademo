@@ -936,7 +936,7 @@ Font:
 	INCBIN "media/FastCarFont.284x100x4"
 
 Module1:
-	incbin "media/P61.new_ditty"		;usecode $c00b43b	
+	incbin "media/P61.logosandscrollers"
 
 *******************************************************************************
 	SECTION ChipBuffers,BSS_C	;BSS doesn't count toward exe size

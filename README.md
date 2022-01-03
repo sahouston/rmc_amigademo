@@ -4,6 +4,8 @@ To celebrate the opening of the [RMC Retro Cave](https://www.rmcretro.com/visit-
 
 Photon from Scoopex has created some incredibly helpful resources on Amiga demos: [coppershade.org](http://coppershade.org/) and the [AsmSkool series on youtube](https://www.youtube.com/playlist?list=PLtjBEWQ66xeLEqAUssJEDQRV1cbQR2-xk)
 
+The legendary DJ H0ffman has kindly allowed me to use one of his tracks for the music, it's called Logos & Scrollers.
+
 This demo is still a work in progress, you can see a clip of the [current version on youtube.](https://www.youtube.com/watch?v=a2sXai7aqsA)
 
 [![current version](./media/screenshot.jpg)](https://www.youtube.com/watch?v=a2sXai7aqsA)
@@ -24,7 +26,6 @@ To run on [WinUAE](https://www.winuae.net/).
 * Add a starfield
 * Change the scrolltext font
 * Write the scrolltext contents
-* Add music
 * Bouncing copper bars?
 
 I am looking for contributions to the scrolltext. If you would like to include a message please open a github issue, pull request or email me steven@shouston.net
