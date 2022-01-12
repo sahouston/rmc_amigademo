@@ -31,11 +31,15 @@ bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
 
 ; Font bitmap dims
 fontw		= 288
-fonth		= 100
+fonth		= 130
 fontbpls 	= 4
 fontwb		= fontw/8
+charw		= 32
+charh		= 26
 
 MaxBobs	= 8
+
+playMusic = 1
 
 ; Init - One time initialization code
 ; a4: VBR
@@ -58,6 +62,7 @@ Init:
 	bsr.w ClearScreen
 	bsr WaitBlitter
 
+	IFNE playMusic 		; playMusic ne 0
     *--- Call P61_Init ---*
 	movem.l d0-a6,-(sp)
 
@@ -68,6 +73,7 @@ Init:
 	jsr P61_Init
 
 	movem.l (sp)+,d0-a6
+	ENDC
 
     *--- init sprites ---*
 	; Setup copper list to write sprite
@@ -101,7 +107,7 @@ Init:
 
 	; Init the sprite data 
 	lea StarSpr,a1
-	moveq #$2c,d0
+	moveq #$2c,d0			; $58 for below logo
 	moveq #26-1,d7
 .skyl:	
 	move.b d0,(a1)+			;vstart
@@ -207,7 +213,7 @@ Init:
     *--- odd lines sprites ---*
 
 	lea StarSpr2,a1
-	moveq #$2d,d0
+	moveq #$2d,d0			; $59 for below logo
 	moveq #26-1,d7
 .skyl2:
 	move.b d0,(a1)+			;vstart
@@ -576,9 +582,11 @@ testMouse:
 	btst #6,$bfe001			;Left mouse button not pressed?
 	bne.w MainLoop			;then loop	
   *--- exit ---*
+  	IFNE playMusic 			; playMusic ne 0
 	movem.l d0-a6,-(sp)
 	jsr P61_End
 	movem.l (sp)+,d0-a6  
+	ENDC
 	rts
 
 ********** Demo Routines **********
@@ -588,10 +596,10 @@ testMouse:
 ; offscreen area
 ; a0: ptr to ascii value of char
 PlotChar:
-row 	= fontw*fontbpls*20/8		; Chars are 20 pixels high
-col 	= 32/8				; and 32 pixels wide
-plotY 	= bufferh-20
-plotX 	= bufferw-32
+row 	= fontw*fontbpls*charh/8
+col 	= charw/8
+plotY 	= bufferh-charh
+plotX 	= bufferw-charw
 
 	movem.l d0-a6,-(sp)
 	lea $dff000,a6
@@ -622,14 +630,14 @@ plotX 	= bufferw-32
 	move.w #fontwb-col,BLTAMOD(a6)
 	move.w #bplwb-col,BLTDMOD(a6)
 
-	move.w #20*fontbpls*64+2,BLTSIZE(a6) ;H=20, W=32 (2 words)
+	move.w #charh*fontbpls*64+charw/16,BLTSIZE(a6) ; /16 because w in words
 	movem.l (sp)+,d0-a6
 	rts
 
 ; *** Scrollit ***
 Scrollit:
-bltoffs	=(bufferh-20)*bplwb*4
-blth	=20
+bltoffs	=(bufferh-charh)*bplwb*4
+blth	=charh
 bltw	=bufferw/16
 bltskip	=0				;modulo
 brcorner=blth*bplwb*4-2
@@ -905,15 +913,17 @@ BplPtrs:
 	dc.w $0190,$0eb9,$0192,$0853,$0194,$0579,$0196,$0356
 	dc.w $0198,$099a,$019a,$0877,$019c,$0544,$019e,$0e00
 
-	; Wait for the scanline after the bob area
+	; Wait for the scanline after the bob area (scrolltext area)
 	; bob area height = screen height - logo height - scrolltext height
 	; 256-44-20 = 192 ($C0)
 	; Scanline after bob area = $58 + $C0 = $118
 	; Need to wait for $ff then $19 to get $118
 	dc.w $ff05,$fffe	
 	dc.w $1905,$fffe
-	dc.w $0180,$0000,$0182,$057a,$0184,$0235,$0186,$0358
-	dc.w $0188,$079a,$018a,$08bc,$018c,$09de,$018e,$0aff
+;	dc.w $100,3*$1000+$200	;set number of bitplanes
+
+	dc.w $0180,$0000,$0182,$0e11,$0184,$0e11,$0186,$0e11
+	dc.w $0188,$0e11,$018a,$0e11,$018c,$0e11,$018e,$0e11
 	dc.w $0190,$0000,$0192,$0000,$0194,$0000,$0196,$0000
 	dc.w $0198,$0000,$019a,$0000,$019c,$0000,$019e,$0000
 
@@ -934,7 +944,7 @@ Mask:
 	INCBIN	"media/bob.mask"
 
 Font:
-	INCBIN "media/FastCarFont.284x100x4"
+	INCBIN "media/fippsfont.288x130x4.raw"
 
 Module1:
 	incbin "media/P61.logosandscrollers"
