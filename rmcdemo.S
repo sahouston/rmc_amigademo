@@ -18,7 +18,7 @@
 logow   	= 320			;logo width
 logoh		= 44			;logo height
 logowb  	= logow/8		;byte-width of logo
-logobpls	= 4			;logo bitplanes
+logobpls	= 3			;logo bitplanes
 
 ; Bob & scrolltext screen area dims
 screenw 	= 320			;onscreen pixels
@@ -28,6 +28,8 @@ bufferh		= 256-logoh		;height
 bpls		= 4			;bitplanes
 bplwb		= bufferw/8		;byte-width of 1 bitplane line
 bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
+
+; Scrolltext screen area dims	
 
 ; Font bitmap dims
 fontw		= 288
@@ -884,9 +886,9 @@ LogoBplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
-	dc.w $108,logowb*4-screenw/8
-	dc.w $10a,logowb*4-screenw/8
-	dc.w $100,bpls*$1000+$200	;enable bitplanes
+	dc.w $108,logowb*logobpls-screenw/8	; modulos
+	dc.w $10a,logowb*logobpls-screenw/8
+	dc.w $100,logobpls*$1000+$200		;enable bitplanes
 
 	; Screen area for bobs
 
@@ -904,8 +906,9 @@ BplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
-	dc.w $108,bplwb*4-screenw/8		;modulos - takes offscreen 32
-	dc.w $10a,bplwb*4-screenw/8		;pixels into consideration
+	dc.w $108,bplwb*bpls-screenw/8		;modulos - takes offscreen 32
+	dc.w $10a,bplwb*bpls-screenw/8		;pixels into consideration
+	dc.w $100,bpls*$1000+$200		;enable bitplanes
 
 	; Bobs palette
 	dc.w $0180,$0000,$0182,$0ddd,$0184,$08be,$0186,$0fff
@@ -932,7 +935,7 @@ BplPtrs:
 CopperE:
 
 Logo:
-	INCBIN "media/RMCthecave320x44.raw"
+	INCBIN "media/RMCthecave320x44x3.raw"
 
 NeilBob:
 	INCBIN "media/LowPixelNeil_48x45.raw"
