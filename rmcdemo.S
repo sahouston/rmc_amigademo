@@ -47,14 +47,12 @@ bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
 
 MaxBobs	= 8
 
-playMusic = 1
+playMusic = 0
 
 ; Init - One time initialization code
 ; a4: VBR
 ; a6: Custom Registers Base addr
 Init:
-	move.l #VBint,$6c(a4)
-	move.w #$c020,$9a(a6)
 	move.w #$87e0,DMACON(a6)
     *--- clear last bob ptrs ---*
 	lea LastBobs,a0
@@ -725,18 +723,6 @@ ClearScreen:				;a1=screen destination address to clear
 	move.l a1,$54(a6)		;destination address
 	;move.w #h*bpls*64+bplwb/2,$58(a6)	;blitter operation size
 	rts
-
-VBint:					;Blank template VERTB interrupt
-	movem.l d0/a6,-(sp)		;Save used registers
-	lea $dff000,a6
-	btst #5,$1f(a6)			;check if it's our vertb int.
-	beq.s .notvb
-    *--- do stuff here ---*
-	moveq #$20,d0			;poll irq bit
-	move.w d0,$9c(a6)
-	move.w d0,$9c(a6)
-.notvb:	movem.l (sp)+,d0/a6		;restore
-	rte
 
 ********** PLAYROUTINE CODE **********	
 	even
