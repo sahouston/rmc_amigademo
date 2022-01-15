@@ -5,7 +5,7 @@
 ; Coding - haiZe (thanks to Photon from Scoopex for 
 ;	   the AsmSkool youtube series and the Developing 
 ;          Demo Effects magazine articles)
-; Music  - Logos & Scrollers by H0ffman
+; Music  - "Logos & Scrollers" by H0ffman
 ;
 ; Set tab size 8 for correct alignment
 ; Assemble with asmtwo
@@ -113,8 +113,8 @@ Init:
 
 	; Init the sprite data 
 	lea StarSpr,a1
-	moveq #$2c,d0			; $58 for below logo
-	moveq #26-1,d7
+	moveq #$58,d0			; $58 for below logo
+	moveq #20-1,d7
 .skyl:	
 	move.b d0,(a1)+			;vstart
 	addq.b #1,(a1)+			;add speed to hpos
@@ -146,41 +146,42 @@ Init:
 
 	dbf d7,.skyl
 
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1			;skip to next sprite control words
+;	move.b d0,(a1)+			;vstart
+;	addq.b #1,(a1)+			;add speed to hpos
+;	addq.b #1,d0			;increase vstop value
+;	move.b d0,(a1)+			;vstop
+;	addq.b #1,d0			;increase vstop value
+;	addq.w #5,a1			;skip to next sprite control words
 
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
+;	move.b d0,(a1)+
+;	addq.b #2,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	addq.w #5,a1
 
     *--- below line $ff ---*
 
 	moveq #%00000110,d6
+	moveq #0,d0
 
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
+;	move.b d0,(a1)+
+;	addq.b #1,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	move.b d6,(a1)+
+;	addq.w #4,a1			;skip to next sprite control words
 
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
+;	move.b d0,(a1)+
+;	addq.b #3,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	move.b d6,(a1)+
+;	addq.w #4,a1			;skip to next sprite control words
 
-	moveq #5-1,d7
+	moveq #2-1,d7
 .floorl:	
 	move.b d0,(a1)+			;vstart
 	addq.b #1,(a1)+			;add speed to hpos
@@ -219,8 +220,8 @@ Init:
     *--- odd lines sprites ---*
 
 	lea StarSpr2,a1
-	moveq #$2d,d0			; $59 for below logo
-	moveq #26-1,d7
+	moveq #$59,d0			; $59 for below logo
+	moveq #20-1,d7
 .skyl2:
 	move.b d0,(a1)+			;vstart
 	addq.b #1,(a1)+			;add speed to hpos
@@ -252,42 +253,43 @@ Init:
 
 	dbf d7,.skyl2
 
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1			;skip to next sprite control words
+;	move.b d0,(a1)+			;vstart
+;	addq.b #1,(a1)+			;add speed to hpos
+;	addq.b #1,d0			;increase vstop value
+;	move.b d0,(a1)+			;vstop
+;	addq.b #1,d0			;increase vstop value
+;	addq.w #5,a1			;skip to next sprite control words
 
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b #2,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
+;	move.b d0,(a1)+
+;	addq.b #2,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	move.b #2,(a1)+
+;	addq.w #4,a1			;skip to next sprite control words
 
     *--- below line $ff ---*
 
 	moveq #%00000110,d6
+	moveq #0,d0
 
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
+;	move.b d0,(a1)+
+;	addq.b #1,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	move.b d6,(a1)+
+;	addq.w #4,a1			;skip to next sprite control words
 
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
+;	move.b d0,(a1)+
+;	addq.b #3,(a1)+
+;	addq.b #1,d0
+;	move.b d0,(a1)+
+;	addq.b #1,d0			;increase vstop value
+;	move.b d6,(a1)+
+;	addq.w #4,a1			;skip to next sprite control words
 
-	moveq #5-1,d7
+	moveq #2-1,d7
 .floorl2:
 	move.b d0,(a1)+			;vstart
 	addq.b #1,(a1)+			;add speed to hpos
@@ -371,8 +373,8 @@ MainLoop:
 
   *--- move starfield sprites ---*
 	lea StarSpr+1,a1
-	moveq #$2c,d0
-	moveq #26-1,d7
+;	moveq #$2c,d0
+	moveq #20-1,d7
 .skyl:	
 	addq.b #1,(a1)			;add speed to hpos
 	addq.w #8,a1			;skip to next sprite control words
@@ -385,21 +387,19 @@ MainLoop:
 
 	dbf d7,.skyl	
 
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
+;	addq.b #1,(a1)			;add speed to hpos
+;	addq.w #8,a1			;skip to next sprite control words
+;	addq.b #2,(a1)			;add speed to hpos
+;	addq.w #8,a1			;skip to next sprite control words
 
     *--- below line $ff ---*
 
-	moveq #%00000110,d6
+;	addq.b #1,(a1)			;add speed to hpos
+;	addq.w #8,a1
+;	addq.b #3,(a1)			;add speed to hpos
+;	addq.w #8,a1
 
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1
-
-	moveq #5-1,d7
+	moveq #2-1,d7
 .floorl:	
 	addq.b #1,(a1)			;add speed to hpos
 	addq.w #8,a1
@@ -415,8 +415,8 @@ MainLoop:
     *--- odd lines sprites ---*
 
 	lea StarSpr2+1,a1
-	moveq #$2d,d0
-	moveq #26-1,d7
+;	moveq #$2d,d0
+	moveq #20-1,d7
 .skyl2:	
 	addq.b #1,(a1)			;add speed to hpos
 	addq.w #8,a1			;skip to next sprite control words
@@ -429,21 +429,21 @@ MainLoop:
 
 	dbf d7,.skyl2
 
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
+;	addq.b #1,(a1)			;add speed to hpos
+;	addq.w #8,a1			;skip to next sprite control words
+;	addq.b #2,(a1)			;add speed to hpos
+;	addq.w #8,a1			;skip to next sprite control words
 
     *--- below line $ff ---*
 
-	moveq #%00000110,d6
+;	moveq #%00000110,d6
 
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1
+;	addq.b #1,(a1)			;add speed to hpos
+;	addq.w #8,a1
+;	addq.b #3,(a1)			;add speed to hpos
+;	addq.w #8,a1
 
-	moveq #5-1,d7
+	moveq #2-1,d7
 .floorl2:	
 	addq.b #1,(a1)			;add speed to hpos
 	addq.w #8,a1
@@ -786,7 +786,7 @@ SinEnd:
 ; Sprites for starfield
 StarSpr:
 .x:	SET 1
-	REPT 32
+	REPT 22
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
@@ -808,7 +808,7 @@ StarSpr:
 
 StarSpr2:
 .x:	SET $77
-	REPT 32
+	REPT 22
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
