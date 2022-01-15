@@ -45,6 +45,9 @@ bpls		= 4			;bitplanes
 bplwb		= bufferw/8		;byte-width of 1 bitplane line
 bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
 
+; Starfield
+starsvstart	= $58			;vpos to start starfield
+
 MaxBobs	= 8
 
 playMusic = 0
@@ -114,72 +117,25 @@ Init:
 	; Init the sprite data 
 	lea StarSpr,a1
 	moveq #$58,d0			; $58 for below logo
-	moveq #20-1,d7
-.skyl:	
+	moveq #20-1,d7			; 
+.upperl:	
+	lea StarSpeeds,a2
+	moveq #4-1,d5
+.sprl1:	
 	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
+	move.b (a2)+,d1			;read star speed
+	add.b d1,(a1)+			;add speed to hpos
 	addq.b #1,d0			;increase vstop value
 	move.b d0,(a1)+			;vstop
 	addq.b #1,d0			;increase vstop value
 	addq.w #5,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	dbf d7,.skyl
-
-;	move.b d0,(a1)+			;vstart
-;	addq.b #1,(a1)+			;add speed to hpos
-;	addq.b #1,d0			;increase vstop value
-;	move.b d0,(a1)+			;vstop
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #2,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1
+	dbf d5,.sprl1
+	dbf d7,.upperl
 
     *--- below line $ff ---*
 
 	moveq #%00000110,d6
 	moveq #0,d0
-
-;	move.b d0,(a1)+
-;	addq.b #1,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #3,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
 
 	moveq #2-1,d7
 .floorl:	
@@ -223,50 +179,20 @@ Init:
 	moveq #$59,d0			; $59 for below logo
 	moveq #20-1,d7
 .skyl2:
+	lea StarSpeeds,a2
+	moveq #4-1,d5
+.sprl2:	
 	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
+	move.b (a2)+,d1			;read star speed
+	add.b d1,(a1)+			;add speed to hpos
 	addq.b #1,d0			;increase vstop value
 	move.b d0,(a1)+			;vstop
 	addq.b #1,d0			;increase vstop value
 	addq.w #5,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
+	dbf d5,.sprl2
 	dbf d7,.skyl2
 
-;	move.b d0,(a1)+			;vstart
-;	addq.b #1,(a1)+			;add speed to hpos
-;	addq.b #1,d0			;increase vstop value
-;	move.b d0,(a1)+			;vstop
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1			;skip to next sprite control words
 
-;	move.b d0,(a1)+
-;	addq.b #2,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b #2,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
 
     *--- below line $ff ---*
 
@@ -776,6 +702,9 @@ WaveOffsets:
 WaveSteps:
 		dc.w -75*2,-36*2,57*2,-105*2
 
+StarSpeeds:
+		dc.b 1,2,1,3
+
 Sin:
 	INCBIN "Sine1024w.bin"		;amplitude 512 for precision
 SinEnd:
@@ -786,7 +715,7 @@ SinEnd:
 ; Sprites for starfield
 StarSpr:
 .x:	SET 1
-	REPT 22
+	REPT 23
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
@@ -808,7 +737,7 @@ StarSpr:
 
 StarSpr2:
 .x:	SET $77
-	REPT 22
+	REPT 23
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
