@@ -45,310 +45,11 @@ bpls		= 4			;bitplanes
 bplwb		= bufferw/8		;byte-width of 1 bitplane line
 bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
 
+; Starfield
+starsvstart	= $58			;vpos to start starfield
+
 MaxBobs	= 8
-
 playMusic = 0
-
-; Init - One time initialization code
-; a4: VBR
-; a6: Custom Registers Base addr
-Init:
-	move.w #$87e0,DMACON(a6)
-    *--- clear last bob ptrs ---*
-	lea LastBobs,a0
-	lea LastBobs2,a1
-	moveq #MaxBobs-1,d0
-.l0:	clr.l (a0)+
-	clr.l (a1)+
-	dbf d0,.l0
-    *--- clear screens ---*
-	lea Screen,a1
-	bsr.w ClearScreen
-	lea Screen2,a1
-	bsr.w ClearScreen
-	bsr WaitBlitter
-
-	IFNE playMusic 		; playMusic ne 0
-    *--- Call P61_Init ---*
-	movem.l d0-a6,-(sp)
-
-	lea Module1,a0
-	sub.l a1,a1
-	sub.l a2,a2
-	moveq #0,d0
-	jsr P61_Init
-
-	movem.l (sp)+,d0-a6
-	ENDC
-
-    *--- init sprites ---*
-	; Setup copper list to write sprite
-	; pointers each frame.
-	lea SprP,a1			; Pos in copper list that 
-					; writes sprite pointers
-	lea StarSpr,a0			; The sprite address in chip mem
-	move.l a0,d1
-	moveq #2-1,d0			; 2 sprites
-.sprpl:
-	swap d1
-	move.w d1,2(a1)			; sprite address high bits
-	swap d1
-	move.w d1,6(a1)			; sprite address low bits
-	addq.w #8,a1
-	add.l #(StarSpr2-StarSpr),d1	; Move to next sprite
-	dbf d0,.sprpl			
-
-	; Sprites can't be turned off. Unused sprites are just
-	; empty data lists: dc.w 0,0
-	lea NullSpr,a0
-	move.l a0,d1
-	moveq #6-1,d0			; 6 unused sprites
-.sprpl2:
-	swap d1
-	move.w d1,2(a1)
-	swap d1
-	move.w d1,6(a1)
-	addq.w #8,a1
-	dbf d0,.sprpl2
-
-	; Init the sprite data 
-	lea StarSpr,a1
-	moveq #$58,d0			; $58 for below logo
-	moveq #20-1,d7
-.skyl:	
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	dbf d7,.skyl
-
-;	move.b d0,(a1)+			;vstart
-;	addq.b #1,(a1)+			;add speed to hpos
-;	addq.b #1,d0			;increase vstop value
-;	move.b d0,(a1)+			;vstop
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #2,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1
-
-    *--- below line $ff ---*
-
-	moveq #%00000110,d6
-	moveq #0,d0
-
-;	move.b d0,(a1)+
-;	addq.b #1,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #3,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-	moveq #2-1,d7
-.floorl:	
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	dbf d7,.floorl
-
-    *--- odd lines sprites ---*
-
-	lea StarSpr2,a1
-	moveq #$59,d0			; $59 for below logo
-	moveq #20-1,d7
-.skyl2:
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	addq.w #5,a1
-
-	dbf d7,.skyl2
-
-;	move.b d0,(a1)+			;vstart
-;	addq.b #1,(a1)+			;add speed to hpos
-;	addq.b #1,d0			;increase vstop value
-;	move.b d0,(a1)+			;vstop
-;	addq.b #1,d0			;increase vstop value
-;	addq.w #5,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #2,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b #2,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-    *--- below line $ff ---*
-
-	moveq #%00000110,d6
-	moveq #0,d0
-
-;	move.b d0,(a1)+
-;	addq.b #1,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-;	move.b d0,(a1)+
-;	addq.b #3,(a1)+
-;	addq.b #1,d0
-;	move.b d0,(a1)+
-;	addq.b #1,d0			;increase vstop value
-;	move.b d6,(a1)+
-;	addq.w #4,a1			;skip to next sprite control words
-
-	moveq #2-1,d7
-.floorl2:
-	move.b d0,(a1)+			;vstart
-	addq.b #1,(a1)+			;add speed to hpos
-	addq.b #1,d0			;increase vstop value
-	move.b d0,(a1)+			;vstop
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #2,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #1,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	move.b d0,(a1)+
-	addq.b #3,(a1)+
-	addq.b #1,d0
-	move.b d0,(a1)+
-	addq.b #1,d0			;increase vstop value
-	move.b d6,(a1)+
-	addq.w #4,a1			;skip to next sprite control words
-
-	dbf d7,.floorl2
-
-    *--- setup and start copper ---*
-	; Setup bitplane pointers for logo area
-	lea Logo,a0
-	moveq #logowb,d0
-	lea LogoBplPtrs+2,a1
-	moveq #logobpls-1,d1
-	bsr.w PokePtrs
-
-	; Setup bitplane pointers for bob area
-	lea Screen,a0
-	moveq #bplwb,d0
-	lea BplPtrs+2,a1
-	moveq #bpls-1,d1
-	bsr.w PokePtrs	
-
-	; Setup bitplane pointers for scrolltext area
-	lea ScrollArea,a0
-	moveq #scrollwb,d0
-	lea ScrollBplPtrs+2,a1
-	moveq #scrollbpls-1,d1
-	bsr.w PokePtrs
-
-	move.l #Copper,$80(a6)
-	rts
 
 ; Demo - routine is called from PhotonsMiniWrapper
 ; a4: VBR
@@ -372,89 +73,13 @@ MainLoop:
   *--- ...draw into the other ---*
 
   *--- move starfield sprites ---*
+  *--- even lines sprite ---*
 	lea StarSpr+1,a1
-;	moveq #$2c,d0
-	moveq #20-1,d7
-.skyl:	
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
+	bsr MoveSprite
 
-	dbf d7,.skyl	
-
-;	addq.b #1,(a1)			;add speed to hpos
-;	addq.w #8,a1			;skip to next sprite control words
-;	addq.b #2,(a1)			;add speed to hpos
-;	addq.w #8,a1			;skip to next sprite control words
-
-    *--- below line $ff ---*
-
-;	addq.b #1,(a1)			;add speed to hpos
-;	addq.w #8,a1
-;	addq.b #3,(a1)			;add speed to hpos
-;	addq.w #8,a1
-
-	moveq #2-1,d7
-.floorl:	
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1
-
-	dbf d7,.floorl
-
-    *--- odd lines sprites ---*
-
+  *--- odd lines sprite ---*
 	lea StarSpr2+1,a1
-;	moveq #$2d,d0
-	moveq #20-1,d7
-.skyl2:	
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1			;skip to next sprite control words
-
-	dbf d7,.skyl2
-
-;	addq.b #1,(a1)			;add speed to hpos
-;	addq.w #8,a1			;skip to next sprite control words
-;	addq.b #2,(a1)			;add speed to hpos
-;	addq.w #8,a1			;skip to next sprite control words
-
-    *--- below line $ff ---*
-
-;	moveq #%00000110,d6
-
-;	addq.b #1,(a1)			;add speed to hpos
-;	addq.w #8,a1
-;	addq.b #3,(a1)			;add speed to hpos
-;	addq.w #8,a1
-
-	moveq #2-1,d7
-.floorl2:	
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #2,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #1,(a1)			;add speed to hpos
-	addq.w #8,a1
-	addq.b #3,(a1)			;add speed to hpos
-	addq.w #8,a1
-
-	dbf d7,.floorl2
+	bsr MoveSprite
 
   *--- Move scrolltext ---*
 	bsr Scrollit
@@ -602,6 +227,152 @@ testMouse:
 	rts
 
 ********** Demo Routines **********
+
+; Init - One time initialization code
+; a4: VBR
+; a6: Custom Registers Base addr
+Init:
+	move.w #$87e0,DMACON(a6)
+    *--- clear last bob ptrs ---*
+	lea LastBobs,a0
+	lea LastBobs2,a1
+	moveq #MaxBobs-1,d0
+.l0:	clr.l (a0)+
+	clr.l (a1)+
+	dbf d0,.l0
+    *--- clear screens ---*
+	lea Screen,a1
+	bsr.w ClearScreen
+	lea Screen2,a1
+	bsr.w ClearScreen
+	bsr WaitBlitter
+
+	IFNE playMusic 		; playMusic ne 0
+    *--- Call P61_Init ---*
+	movem.l d0-a6,-(sp)
+
+	lea Module1,a0
+	sub.l a1,a1
+	sub.l a2,a2
+	moveq #0,d0
+	jsr P61_Init
+
+	movem.l (sp)+,d0-a6
+	ENDC
+
+    *--- init sprites ---*
+	; Setup copper list to write sprite
+	; pointers each frame.
+	lea SprP,a1			; Pos in copper list that 
+					; writes sprite pointers
+	lea StarSpr,a0			; The sprite address in chip mem
+	move.l a0,d1
+	moveq #2-1,d0			; 2 sprites
+.sprpl:
+	swap d1
+	move.w d1,2(a1)			; sprite address high bits
+	swap d1
+	move.w d1,6(a1)			; sprite address low bits
+	addq.w #8,a1
+	add.l #(StarSpr2-StarSpr),d1	; Move to next sprite
+	dbf d0,.sprpl			
+
+	; Sprites can't be turned off. Unused sprites are just
+	; empty data lists: dc.w 0,0
+	lea NullSpr,a0
+	move.l a0,d1
+	moveq #6-1,d0			; 6 unused sprites
+.sprpl2:
+	swap d1
+	move.w d1,2(a1)
+	swap d1
+	move.w d1,6(a1)
+	addq.w #8,a1
+	dbf d0,.sprpl2
+
+    *--- even lines sprites ---*	
+    	; Init the sprite data 
+	lea StarSpr,a1
+	moveq #$58,d0			; $58 for below logo
+	bsr InitSpriteData
+
+    *--- odd lines sprites ---*
+	lea StarSpr2,a1
+	moveq #$59,d0			; $59 for below logo
+	bsr InitSpriteData
+
+    *--- setup and start copper ---*
+	; Setup bitplane pointers for logo area
+	lea Logo,a0
+	moveq #logowb,d0
+	lea LogoBplPtrs+2,a1
+	moveq #logobpls-1,d1
+	bsr.w PokePtrs
+
+	; Setup bitplane pointers for bob area
+	lea Screen,a0
+	moveq #bplwb,d0
+	lea BplPtrs+2,a1
+	moveq #bpls-1,d1
+	bsr.w PokePtrs	
+
+	; Setup bitplane pointers for scrolltext area
+	lea ScrollArea,a0
+	moveq #scrollwb,d0
+	lea ScrollBplPtrs+2,a1
+	moveq #scrollbpls-1,d1
+	bsr.w PokePtrs
+
+	move.l #Copper,$80(a6)
+	rts
+
+; *** InitSpriteData ***
+; a1: ptr to SpriteData array to initialize
+; d0: sprint start vpos
+InitSpriteData:
+	; Init the sprite data 
+	moveq #23-1,d7			; reps, calculated from starfield height
+.l1:
+	lea StarSpeeds,a2
+	moveq #4-1,d5
+.l2:	
+	moveq #0,d2			;d2 to contain E8 and L8 bits
+	move.b d0,(a1)+			;vstart
+	btst #8,d0
+	beq .eaboveff
+	bset #2,d2			;vstart below ff, set E8 bit
+.eaboveff	
+	move.b (a2)+,d1			;read star speed
+	add.b d1,(a1)+			;add speed to hpos
+	addq.w #1,d0			;increase vstop value
+	move.b d0,(a1)+			;vstop
+	btst #8,d0
+	beq .laboveff
+	bset #1,d2			;vstart below ff, set L8 bit
+.laboveff
+	addq.w #1,d0			;increase vstop value
+	move.b d2,(a1)+
+	addq.w #4,a1			;skip to next sprite control words
+	dbf d5,.l2
+	dbf d7,.l1
+	rts
+
+; *** MoveSprite ***
+; a1: ptr to SpriteData array
+MoveSprite:
+	moveq #23-1,d7
+.movel:	
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #2,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #1,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+	addq.b #3,(a1)			;add speed to hpos
+	addq.w #8,a1			;skip to next sprite control words
+
+	dbf d7,.movel
+	rts
 
 ; *** PlotChar ***
 ; blt a character from the font to the scrolltext 
@@ -776,6 +547,9 @@ WaveOffsets:
 WaveSteps:
 		dc.w -75*2,-36*2,57*2,-105*2
 
+StarSpeeds:
+		dc.b 1,2,1,3
+
 Sin:
 	INCBIN "Sine1024w.bin"		;amplitude 512 for precision
 SinEnd:
@@ -786,7 +560,7 @@ SinEnd:
 ; Sprites for starfield
 StarSpr:
 .x:	SET 1
-	REPT 22
+	REPT 23
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
@@ -808,7 +582,7 @@ StarSpr:
 
 StarSpr2:
 .x:	SET $77
-	REPT 22
+	REPT 23
 .tmpx:	SET ((.x*$751+$deadbeef)/(.x&$55))&$ff
 	dc.w $2c00+.tmpx,$2d00	;Vstart.b,Hstart/2.b,Vstop.b,%A0000SEH
 	dc.w $8000,$0000
@@ -829,8 +603,6 @@ StarSpr2:
 	dc.w 0,0
 
 NullSpr:
-;	dc.w $2a20,$2b00
-;	dc.w 0,0
 	dc.w 0,0
 
 Copper:
@@ -865,13 +637,11 @@ SprP:
 	dc.w $13c,0
 	dc.w $13e,0
 
-	; Screen area for logo
+	; *** Screen area for logo ***
 Palette:
 	; Logo palette
 	dc.w $0180,$0000,$0182,$0c34,$0184,$045a,$0186,$03c6
 	dc.w $0188,$0c84,$018a,$04cc,$018c,$0928,$018e,$0080
-	dc.w $0190,$0000,$0192,$0000,$0194,$0000,$0196,$0000
-	dc.w $0198,$0000,$019a,$0000,$019c,$0000,$019e,$0000
 
 LogoBplPtrs:
 	dc.w $e0,0
@@ -886,7 +656,7 @@ LogoBplPtrs:
 	dc.w $10a,logowb*(logobpls-1)
 	dc.w $100,logobpls*$1000+$200		;enable bitplanes
 
-	; Screen area for bobs
+	; *** Screen area for bobs ***
 
 	; 1st scanline at position 44 ($2c)
 	; Logo is 44 ($2c) px high
@@ -912,9 +682,10 @@ BplPtrs:
 	dc.w $0190,$0eb9,$0192,$0853,$0194,$0579,$0196,$0356
 	dc.w $0198,$099a,$019a,$0877,$019c,$0544,$019e,$0e00
 
+	; *** Screen area for scrolltest ***
+
 	; Wait for the scanline after the bob area (scrolltext area)
 	; bob area height = screen height - logo height - scrolltext height
-	; 256-44-20 = 192 ($C0)
 	; 256-44-26 = 186 ($BA)
 	; Scanline after bob area = $58 + $BA = $112
 	; Need to wait for $ff then $12
