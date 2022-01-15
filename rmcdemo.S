@@ -14,30 +14,36 @@
 	INCLUDE "Blitter-Register-List.S"
 	INCLUDE "P61-Options.S"
 
+screenw 	= 320
+screenh		= 256
+
+; Font bitmap dims
+fontw		= 288
+fonth		= 130
+fontbpls 	= 1
+fontwb		= fontw/8
+charw		= 32
+charh		= 26
+
 ; Logo screen area dims
 logow   	= 320			;logo width
 logoh		= 44			;logo height
 logowb  	= logow/8		;byte-width of logo
 logobpls	= 3			;logo bitplanes
 
-; Bob & scrolltext screen area dims
-screenw 	= 320			;onscreen pixels
-bufferw		= screenw+32		;buffer width (320 + 32 offscreen 
-					;for scrolltext plotting)
-bufferh		= 256-logoh		;height
+; Scrolltext screen area dims
+scrollw		= screenw+charw		; width includes offscreen space to plot char
+scrollh		= charh
+scrollwb	= scrollw/8
+scrollbpls	= 1
+sbwid		= scrollwb*scrollbpls	; byte-width of 1 line, all bpls
+
+; Bob screen area dims
+bufferw		= screenw		;buffer width
+bufferh		= screenh-logoh-scrollh	;height
 bpls		= 4			;bitplanes
 bplwb		= bufferw/8		;byte-width of 1 bitplane line
 bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
-
-; Scrolltext screen area dims	
-
-; Font bitmap dims
-fontw		= 288
-fonth		= 130
-fontbpls 	= 4
-fontwb		= fontw/8
-charw		= 32
-charh		= 26
 
 MaxBobs	= 8
 
@@ -334,6 +340,13 @@ Init:
 	moveq #bpls-1,d1
 	bsr.w PokePtrs	
 
+	; Setup bitplane pointers for scrolltext area
+	lea ScrollArea,a0
+	moveq #scrollwb,d0
+	lea ScrollBplPtrs+2,a1
+	moveq #scrollbpls-1,d1
+	bsr.w PokePtrs
+
 	move.l #Copper,$80(a6)
 	rts
 
@@ -346,7 +359,7 @@ Demo:
 MainLoop:
   *--- swap buffers ---*
 	move.w #$12c,d0			; Wait until raster is below the Display Window 
-	bsr.w WaitRaster		; (vpos 300)
+	bsr.w WaitRaster		; vpos start: 44, end: 300 ($12c)
 	movem.l DrawBuffer(PC),a2-a3
 	exg a2,a3
 	movem.l a2-a3,DrawBuffer	;draw into a2, show a3
@@ -445,6 +458,27 @@ MainLoop:
 
 	dbf d7,.floorl2
 
+  *--- Move scrolltext ---*
+	bsr Scrollit
+
+  *--- Plot next scrolltext char ---*
+	move.w ScrollCtr(PC),d0		; ScrollCounter
+	addq.w #4,d0			; Scrolled 4 pixels
+	cmp.w #32,d0			; Don't plot until scrolled 32 px
+	blo.s .noplot
+
+	clr.w d0			; Reset ScrollCounter
+	move.l ScrollPtr(PC),a0		; Pointer to the char to plot
+	bsr PlotChar			; Plot it	
+	addq.l #1,a0			; Next char
+	cmp.l #ScrollTextWrap,a0	; Check if we're at the end of the
+	bne.s .nowrap			; scrolltxt.
+	lea Scrolltext,a0		; Yes, go back to the start
+.nowrap
+	move.l a0,ScrollPtr		; Store ptr to the next char to plot
+
+.noplot:
+	move.w d0,ScrollCtr		; Store the ScrollCounter
 	
   *--- move start of curves ---*	;the "nose" of the snake
 	move.w #1023*2,d3		;keep within curve size, used below
@@ -497,7 +531,7 @@ MainLoop:
 	add.l #120*bwid+bplwb/2-4,a1
 	lea Mask,a2
 
-  *--- draw bobs ---*
+  *--- draw new bobs ---*
 	lea Sin(PC),a5			;sine table	
 	movem.w WaveOffsets(PC),d4-d7	;our offset values into said table
 	move.l DrawBuffer(PC),a4
@@ -546,28 +580,6 @@ bobloop:
 	blt bobloop
   * --- end bob loop --- *
 
-  *--- Move scrolltext ---*
-	bsr Scrollit
-
-  *--- Plot next scrolltext char ---*
-	move.w ScrollCtr(PC),d0		; ScrollCounter
-	addq.w #4,d0			; Scrolled 4 pixels
-	cmp.w #32,d0			; Don't plot until scrolled 32 px
-	blo.s .noplot
-
-	clr.w d0			; Reset ScrollCounter
-	move.l ScrollPtr(PC),a0		; Pointer to the char to plot
-	bsr PlotChar			; Plot it	
-	addq.l #1,a0			; Next char
-	cmp.l #ScrollTextWrap,a0	; Check if we're at the end of the
-	bne.s .nowrap			; scrolltxt.
-	lea Scrolltext,a0		; Yes, go back to the start
-.nowrap
-	move.l a0,ScrollPtr		; Store ptr to the next char to plot
-
-.noplot:
-	move.w d0,ScrollCtr		; Store the ScrollCounter
-
 	add.w #1,FrameCounter		; FrameCounter++
 	cmp.w #10,FrameCounter		; Test if 10 frames have elapsed
 	bne testMouse
@@ -600,8 +612,8 @@ testMouse:
 PlotChar:
 row 	= fontw*fontbpls*charh/8
 col 	= charw/8
-plotY 	= bufferh-charh
-plotX 	= bufferw-charw
+plotY 	= 0
+plotX 	= scrollw-charw
 
 	movem.l d0-a6,-(sp)
 	lea $dff000,a6
@@ -626,11 +638,11 @@ plotX 	= bufferw-charw
 	move.l #$09f00000,BLTCON0(a6)
 	move.l #$ffffffff,BLTAFWM(a6)
 	move.l d0,BLTAPTH(a6)
-	move.l DrawBuffer(PC),a1
-	add.l #bwid*plotY+plotX/8,a1	;Blt Dest
+	lea ScrollArea,a1
+	add.l #sbwid*plotY+plotX/8,a1	;Blt Dest
 	move.l a1,BLTDPTH(a6)
 	move.w #fontwb-col,BLTAMOD(a6)
-	move.w #bplwb-col,BLTDMOD(a6)
+	move.w #scrollwb-col,BLTDMOD(a6)
 
 	move.w #charh*fontbpls*64+charw/16,BLTSIZE(a6) ; /16 because w in words
 	movem.l (sp)+,d0-a6
@@ -638,11 +650,11 @@ plotX 	= bufferw-charw
 
 ; *** Scrollit ***
 Scrollit:
-bltoffs	=(bufferh-charh)*bplwb*4
+bltoffs	=0
 blth	=charh
-bltw	=bufferw/16
+bltw	=scrollw/16
 bltskip	=0				;modulo
-brcorner=blth*bplwb*4-2
+brcorner=blth*scrollwb*scrollbpls-2	;bottom right corner
 
 	movem.l d0-a6,-(sp)
 	lea $dff000,a6
@@ -650,16 +662,12 @@ brcorner=blth*bplwb*4-2
 
 	move.l #$49f00002,BLTCON0(a6)	; Shift by 4 pixels
 	move.l #$ffffffff,BLTAFWM(a6)
-	move.l ViewBuffer(PC),a1	; Read from onscreen buffer
-	move.l DrawBuffer(PC),a2	; Write to offscreen buffer
-	add.l  #bltoffs+brcorner,a1
-	add.l  #bltoffs+brcorner,a2
-	move.l a1,BLTAPTH(a6)
-	move.l a2,BLTDPTH(a6)
+	move.l #ScrollArea+bltoffs+brcorner,BLTAPTH(a6)
+	move.l #ScrollArea+bltoffs+brcorner,BLTDPTH(a6)
 	move.w #bltskip,BLTAMOD(a6)
 	move.w #bltskip,BLTDMOD(a6)
 
-	move.w #blth*4*64+bltw,BLTSIZE(a6)
+	move.w #blth*scrollbpls*64+bltw,BLTSIZE(a6)
 	movem.l (sp)+,d0-a6
 	rts
 
@@ -698,6 +706,7 @@ XtblCookie:				;look up BLTCON0+1 from X-shift
 	dc.l $4fca4000,$5fca5000,$6fca6000,$7fca7000
 	dc.l $8fca8000,$9fca9000,$afcaa000,$bfcab000
 	dc.l $cfcac000,$dfcad000,$efcae000,$ffcaf000	
+
 
 PokePtrs:				;Generic, poke ptrs into copper list
 .bpll:	move.l a0,d2
@@ -769,6 +778,7 @@ ScrollText:
 		dc.b "AMIGAS AND LOTS MORE. "
 		blk.b bufferw/32,' '
 ScrollTextWrap:
+		EVEN
 
 ScrollCtr:
 		dc.w 0
@@ -839,8 +849,8 @@ NullSpr:
 
 Copper:
 	dc.w $1fc,0			;Slow fetch mode, remove if AGA demo.
-	dc.w $8e,$2c81			;display window top, left: 129,44
-	dc.w $90,$2cc1			;and bottom, right: 448,300 (320x256)
+	dc.w $8e,$2c81			;display window left, top: 129,44
+	dc.w $90,$2cc1			;and right, bottom: 448,300 (320x256)
 	dc.w $92,$38			;Standard bitplane dma fetch start
 	dc.w $94,$d0			;and stop for standard screen.
 
@@ -886,8 +896,8 @@ LogoBplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
-	dc.w $108,logowb*logobpls-screenw/8	; modulos
-	dc.w $10a,logowb*logobpls-screenw/8
+	dc.w $108,logowb*(logobpls-1)		; modulos
+	dc.w $10a,logowb*(logobpls-1)
 	dc.w $100,logobpls*$1000+$200		;enable bitplanes
 
 	; Screen area for bobs
@@ -906,8 +916,8 @@ BplPtrs:
 	dc.w $ea,0
 	dc.w $ec,0
 	dc.w $ee,0
-	dc.w $108,bplwb*bpls-screenw/8		;modulos - takes offscreen 32
-	dc.w $10a,bplwb*bpls-screenw/8		;pixels into consideration
+	dc.w $108,bplwb*(bpls-1)		;modulos
+	dc.w $10a,bplwb*(bpls-1)
 	dc.w $100,bpls*$1000+$200		;enable bitplanes
 
 	; Bobs palette
@@ -919,18 +929,27 @@ BplPtrs:
 	; Wait for the scanline after the bob area (scrolltext area)
 	; bob area height = screen height - logo height - scrolltext height
 	; 256-44-20 = 192 ($C0)
-	; Scanline after bob area = $58 + $C0 = $118
-	; Need to wait for $ff then $19 to get $118
-	dc.w $ff05,$fffe	
-	dc.w $1905,$fffe
-;	dc.w $100,3*$1000+$200	;set number of bitplanes
+	; 256-44-26 = 186 ($BA)
+	; Scanline after bob area = $58 + $BA = $112
+	; Need to wait for $ff then $12
+	dc.w $ffdf,$fffe		;wait for VPOS>$ff
+	dc.w $1205,$fffe
 
-	dc.w $0180,$0000,$0182,$0e11,$0184,$0e11,$0186,$0e11
-	dc.w $0188,$0e11,$018a,$0e11,$018c,$0e11,$018e,$0e11
-	dc.w $0190,$0000,$0192,$0000,$0194,$0000,$0196,$0000
-	dc.w $0198,$0000,$019a,$0000,$019c,$0000,$019e,$0000
+ScrollBplPtrs:
+	dc.w $e0,0
+	dc.w $e2,0
+	dc.w $e4,0
+	dc.w $e6,0
+	dc.w $e8,0
+	dc.w $ea,0
+	dc.w $ec,0
+	dc.w $ee,0
+	dc.w $108,scrollwb*(scrollbpls-1)+charw/8 ;modulos - takes offscreen 32
+	dc.w $10a,scrollwb*(scrollbpls-1)+charw/8 ;pixels for char into consideration
+	dc.w $100,scrollbpls*$1000+$200		;enable bitplanes	
 
-	dc.w $ffdf,$fffe		;allow VPOS>$ff
+	dc.w $0180,$0000,$0182,$0e11
+
 	dc.w $ffff,$fffe		;magic value to end copperlist
 CopperE:
 
@@ -947,7 +966,7 @@ Mask:
 	INCBIN	"media/bob.mask"
 
 Font:
-	INCBIN "media/fippsfont.288x130x4.raw"
+	INCBIN "media/fippsfont.288x130x1.raw"
 
 Module1:
 	incbin "media/P61.logosandscrollers"
@@ -967,6 +986,11 @@ LastBobs2:
 					; locations
 Screen2:
 	ds.b bufferh*bwid		; two buffers
+
+ScrollArea:
+	ds.b scrollh*sbwid		; buffer to draw scrolltext to.
+					; Unlike the bob area this is not
+					; double buffered
 
 	END
 
