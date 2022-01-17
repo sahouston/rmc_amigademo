@@ -209,9 +209,31 @@ bobloop:
 					; Yes, shift the bobs
 	move.w #0,FrameCounter 		; Reset frame counter
 	add.w #1,BobShift		; Shift bobs
-	cmp.w #8,BobShift
+	cmp.w #8,BobShift	
 	bne testMouse
 	move.w #0,BobShift		; Reset bob shift
+
+	; Cycle the logo palette
+	lea LogoColors,a0
+	move.l LogoColorOffset,d0
+	addq.l #2,d0			; increment offset (1 word, 2 bytes)
+	cmp.l #14,d0			; only 7 colors (14 bytes)
+	bne .noresetoffset
+	moveq.l #0,d0			; if 8 reset to 0
+.noresetoffset:
+	move.l d0,LogoColorOffset	; Store incremented offset
+	add.l d0,a0			; Add offset to color array ptr
+	lea LogoPalette+6,a1		; 1st non background color addr 
+	moveq #7-1,d1
+.palloop:	
+	move.w (a0)+,(a1)		; Move logo color into palette
+	addq.l #4,a1
+	cmp.l #LogoColorsEnd,a0
+	bne .nowrap
+	lea LogoColors,a0		; We've come to the end of the
+					; logo colors, wrap back to start
+.nowrap:	
+	dbf d1,.palloop
 
   *--- main loop end ---*
 testMouse:
@@ -550,6 +572,11 @@ WaveSteps:
 StarSpeeds:
 		dc.b 1,2,1,3
 
+LogoColors:
+		dc.w $0c34,$045a,$03c6,$0c84,$04cc,$0928,$0080
+LogoColorsEnd:
+LogoColorOffset:dc.l 0
+
 Sin:
 	INCBIN "Sine1024w.bin"		;amplitude 512 for precision
 SinEnd:
@@ -638,7 +665,7 @@ SprP:
 	dc.w $13e,0
 
 	; *** Screen area for logo ***
-Palette:
+LogoPalette:
 	; Logo palette
 	dc.w $0180,$0000,$0182,$0c34,$0184,$045a,$0186,$03c6
 	dc.w $0188,$0c84,$018a,$04cc,$018c,$0928,$018e,$0080
