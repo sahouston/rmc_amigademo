@@ -573,7 +573,7 @@ StarSpeeds:
 		dc.b 1,2,1,3
 
 LogoColors:
-		dc.w $0c34,$045a,$03c6,$0c84,$04cc,$0928,$0080
+        	dc.w $03c2,$02bc,$023c,$0c2d,$0e03,$0ed2,$0f80			
 LogoColorsEnd:
 LogoColorOffset:dc.l 0
 
@@ -667,8 +667,8 @@ SprP:
 	; *** Screen area for logo ***
 LogoPalette:
 	; Logo palette
-	dc.w $0180,$0000,$0182,$0c34,$0184,$045a,$0186,$03c6
-	dc.w $0188,$0c84,$018a,$04cc,$018c,$0928,$018e,$0080
+        dc.w $0180,$0000,$0182,$03c2,$0184,$02bc,$0186,$023c
+        dc.w $0188,$0c2d,$018a,$0e03,$018c,$0ed2,$018e,$0f80	
 
 LogoBplPtrs:
 	dc.w $e0,0
