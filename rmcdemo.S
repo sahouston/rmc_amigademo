@@ -49,7 +49,7 @@ bwid		= bplwb*bpls		;byte-width of 1 line, all bpls
 starsvstart	= $58			;vpos to start starfield
 
 MaxBobs	= 8
-playMusic = 0
+playMusic = 1
 
 ; Demo - routine is called from PhotonsMiniWrapper
 ; a4: VBR
@@ -58,9 +58,14 @@ Demo:
 	bsr Init
 	move.w #0,d4			; index into sine table
 MainLoop:
-  *--- swap buffers ---*
+  *--- wait for vblank ---*
 	move.w #$12c,d0			; Wait until raster is below the Display Window 
 	bsr.w WaitRaster		; vpos start: 44, end: 300 ($12c)
+	
+  *--- play music ---*
+	jsr P61_Music			;and call the playroutine manually.
+
+  *--- swap buffers ---*
 	movem.l DrawBuffer(PC),a2-a3
 	exg a2,a3
 	movem.l a2-a3,DrawBuffer	;draw into a2, show a3
