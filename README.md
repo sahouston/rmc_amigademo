@@ -11,21 +11,18 @@ This demo is still a work in progress, you can see a clip of the [current versio
 [![current version](./media/screenshot.jpg)](https://www.youtube.com/watch?v=a2sXai7aqsA)
 
 ## Assemble and run
-To run on [WinUAE](https://www.winuae.net/). 
-* You can use the A500 quickstart configuration but under Settings->Hardware->CD & Hard drives click "Add Directory or Archive" and set the path to the directory you cloned this repository to. Set the device name to DH0. Click OK.
+To assemble on [WinUAE](https://www.winuae.net/). 
+* You can use the A500 quickstart configuration with 512KB Chip + 512KB Slow RAM, make sure NTSC is not selected.
+* Under Settings->Hardware->CD & Hard drives click "Add Directory or Archive" and set the path to the directory you cloned this repository to. Set the device name to DH0. Click OK.
 * Optionally under Settings->Configurations give the configuration a name and description and save it.
 * Click Start
 * Once the AmigaDOS prompt appears type asmtwo
-* At the ALLOCATE Fast/Chip/Abs prompt type chip
-* For WORKSPACE KB> enter 64
+* At the ALLOCATE Fast/Chip/Abs prompt type fast
+* For WORKSPACE KB> enter 128
 * At the Ready prompt type r then hit return
 * At the FILENAME> prompt enter rmcdemo.S
 * Then type a then return to assemble and j then return to run. Click the left mouse button to exit the demo.
 
 ## ToDo
-* Add a starfield
-* Change the scrolltext font
-* Write the scrolltext contents
-* Bouncing copper bars?
-
-I am looking for contributions to the scrolltext. If you would like to include a message please open a github issue, pull request or email me steven@shouston.net
+* Copper bars?
+* NTSC support
