@@ -269,8 +269,21 @@ Init:
 	dbf d0,.l0
     *--- clear screens ---*
 	lea Screen,a1
+	move.w #bufferw,d0
+	move.w #bufferh,d1
+	move.w #bpls,d2	
 	bsr.w ClearScreen
+
 	lea Screen2,a1
+	move.w #bufferw,d0
+	move.w #bufferh,d1
+	move.w #bpls,d2	
+	bsr.w ClearScreen
+
+	lea ScrollArea,a1
+	move.w #scrollw,d0
+	move.w #scrollh,d1
+	move.w #scrollbpls,d2
 	bsr.w ClearScreen
 	bsr WaitBlitter
 
@@ -514,12 +527,21 @@ PokePtrs:				;Generic, poke ptrs into copper list
 	dbf d1,.bpll
 	rts
 
-ClearScreen:				;a1=screen destination address to clear
+; *** ClearScreen ***
+; a1: address of screen buffer to clear
+; d0: bufferw
+; d1: bufferh
+; d2: number of bitplanes
+ClearScreen:
+	mulu.w d2,d1			; d1 = bufferh * bpls
+	lsl.w #6,d1
+	lsr.w #4,d0			; bufferw / 16 (width in words)
+	add.w d0,d1
 	bsr WaitBlitter
 	clr.w $66(a6)			;destination modulo
 	move.l #$01000000,$40(a6)	;set operation type in BLTCON0/1
 	move.l a1,$54(a6)		;destination address
-	;move.w #h*bpls*64+bplwb/2,$58(a6)	;blitter operation size
+	move.l d1,$58(a6)
 	rts
 
 ********** PLAYROUTINE CODE **********	
@@ -557,9 +579,23 @@ FontTbl:	dc.b  43,38
 ScrollPtr:
 		dc.l ScrollText
 ScrollText:
-		dc.b "WELCOME TO RMC RETRO!!! THE CAVE IS NOW OPEN AND WE WELCOME "
-		dc.b "ALL VISITORS TO COME AND MARVEL AT OUR COLLECTION OF AMAZING "
-		dc.b "AMIGAS AND LOTS MORE. "
+		dc.b "WELCOME TO RMC RETRO!!! THE CAVE IS NOW OPEN AND WE INVITE YOU "
+		dc.b "TO ENJOY THE COLLECTION OF AMAZING RETRO COMPUTERS, CONSOLES, GAMES, MAGAZINES "
+		dc.b "AND MORE! VISIT RMCRETRO.COM TO CATCH UP ON RMC VIDEOS AND FIND OUT MORE. "
+		dc.b "    THIS RETRO AMIGA DEMO WAS CODED BY HAIZE AND THE MUSIC IS THE TRACK "
+		dc.b "LOGOS AND SCROLLERS BY THE LEGENDARY DJ H0FFMAN. SEARCH GITHUB FOR RMC AMIGADEMO "
+		dc.b "TO GET THE CODE. A BIG THANKS TO PHOTON OF SCOOPEX FOR HIS ASMSKOOL SERIES ON "
+		dc.b "YOUTUBE, KEEPING AMIGA CODING ALIVE IN 2022!    "
+		dc.b "SHOUT OUT TO THE BOSSMAN NEIL, RICHARD AT HEBER, MARK FIXES "
+		dc.b "STUFF, AMIGOS RETRO GAMING, STOO AND THE WHOLE RMC DISCORD POSSE. "
+		dc.b "   WE'VE GOT SOME MESSAGES FROM DISCORD - WSTLR SAYS 'CULT OF THE SCOTCH EGG 0WNS. "
+		dc.b "ACCEPT NO IMITATIONS. WE ARE WORLDS NUMBER ONE!', RICH SAYS 'THEM THERE "
+		dc.b "LEGIONSOFSORBUMS ARE PROPER LAME!' AND GARY SCHOLZ SAYS 'BIG UP DA PORK PIE "
+		dc.b "MASSIVE!'. DID HE MEAN MASSIVE PORK PIE?"
+		dc.b "    WE HOPE YOU ARE ENJOYING THIS SLICE OF AMIGA NOSTALGIA. "
+		dc.b "IF YOU WANT TO GET IN TOUCH CONNECT TO OUR 2400 BAUD BBS ON..... "
+		dc.b "NO WAIT.... THE CONTACT PAGE ON RMCRETRO.COM WOULD BE EASIER, OR EMAIL ME  "
+		dc.b "HAIZE AT SHOUSTON.NET     OVER AND OUT...."
 		blk.b bufferw/32,' '
 ScrollTextWrap:
 		EVEN
@@ -737,7 +773,7 @@ ScrollBplPtrs:
 	dc.w $10a,scrollwb*(scrollbpls-1)+charw/8 ;pixels for char into consideration
 	dc.w $100,scrollbpls*$1000+$200		;enable bitplanes	
 
-	dc.w $0180,$0000,$0182,$0e11
+	dc.w $0180,$0000,$0182,$0f33
 
 	dc.w $ffff,$fffe		;magic value to end copperlist
 CopperE:
