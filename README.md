@@ -6,9 +6,9 @@ Photon from Scoopex has created some incredibly helpful resources on Amiga demos
 
 The legendary DJ H0ffman has kindly allowed me to use one of his tracks for the music: Logos & Scrollers.
 
-This demo is still a work in progress, you can see a clip of the [current version on youtube.](https://www.youtube.com/watch?v=a2sXai7aqsA)
+[Watch the demo on youtube.](https://www.youtube.com/watch?v=B0ZxYfe0f6k)
 
-[![current version](./media/screenshot.jpg)](https://www.youtube.com/watch?v=a2sXai7aqsA)
+[![demo screenshot](./media/screenshot.jpg)](https://www.youtube.com/watch?v=B0ZxYfe0f6k)
 
 ## Assemble and run
 To assemble on [WinUAE](https://www.winuae.net/). 
