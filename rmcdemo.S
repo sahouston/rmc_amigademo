@@ -541,7 +541,7 @@ ClearScreen:
 	clr.w $66(a6)			;destination modulo
 	move.l #$01000000,$40(a6)	;set operation type in BLTCON0/1
 	move.l a1,$54(a6)		;destination address
-	move.l d1,$58(a6)
+	move.w d1,$58(a6)
 	rts
 
 ********** PLAYROUTINE CODE **********	
