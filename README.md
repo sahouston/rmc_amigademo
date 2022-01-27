@@ -10,8 +10,15 @@ The legendary DJ H0ffman has kindly allowed me to use one of his tracks for the 
 
 [![demo screenshot](./media/screenshot.jpg)](https://www.youtube.com/watch?v=B0ZxYfe0f6k)
 
+## Run from adf
+To run on [WinUAE](https://www.winuae.net/). 
+* Download rmcdemo.adf from the [github releases page](https://github.com/sahouston/rmc_amigademo/releases)
+* Run WinUAE. You can use the A500, A500+, A600 or A1200 quickstart option, but ensure NTSC is disabled.
+* Select the rmcdemo.adf file for DF0:
+* (Optional) To get smooth scrolltext you'll need a 50Hz monitor and set Host->Display options set to something like [this.](media/displayoptions.jpg)
+* Click Start
+
 ## Assemble and run
-To assemble on [WinUAE](https://www.winuae.net/). 
 * You can use the A500 quickstart configuration with 512KB Chip + 512KB Slow RAM, make sure NTSC is not selected.
 * Under Settings->Hardware->CD & Hard drives click "Add Directory or Archive" and set the path to the directory you cloned this repository to. Set the device name to DH0. Click OK.
 * Optionally under Settings->Configurations give the configuration a name and description and save it.
@@ -23,6 +30,6 @@ To assemble on [WinUAE](https://www.winuae.net/).
 * At the FILENAME> prompt enter rmcdemo.S
 * Then type a then return to assemble and j then return to run. Click the left mouse button to exit the demo.
 
-## ToDo
-* Copper bars?
+## Future
 * NTSC support
+* Do we need copper bars?
