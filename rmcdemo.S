@@ -8,9 +8,8 @@
 ; Music  - "Logos & Scrollers" by H0ffman
 ;
 ; Set tab size 8 for correct alignment
-; Assemble with asmtwo
 
-	INCLUDE "PhotonsMiniWrapper1.04!.S"
+	INCLUDE "PhotonsMiniWrapper104.S"
 	INCLUDE "Blitter-Register-List.S"
 	INCLUDE "P61-Options.S"
 
@@ -54,7 +53,7 @@ playMusic = 1
 ; Demo - routine is called from PhotonsMiniWrapper
 ; a4: VBR
 ; a6: Custom Registers Base addr
-Demo:					
+Demo::
 	bsr Init
 	move.w #0,d4			; index into sine table
 MainLoop:
@@ -101,7 +100,7 @@ MainLoop:
 	addq.l #1,a0			; Next char
 	cmp.l #ScrollTextWrap,a0	; Check if we're at the end of the
 	bne.s .nowrap			; scrolltxt.
-	lea Scrolltext,a0		; Yes, go back to the start
+	lea ScrollText,a0		; Yes, go back to the start
 .nowrap
 	move.l a0,ScrollPtr		; Store ptr to the next char to plot
 
@@ -173,8 +172,9 @@ bobloop:
 	; 8 bobs total, we want to draw 4 with the R logo and 4 with Neil.
 	; We want to cycle them along the bob snake using BobShift.
 	move.w BobIdx,d0
-	addi.w BobShift,d0		; Shift the bobs along the snake
-	and.l #4, d0			; 3rd bit of BobIdx + BobShift tells us
+	move.w BobShift,d1		; get bob shift into d1
+	add.w d1,d0			; Shift the bobs along the snake
+	andi.w #4,d0			; 3rd bit of BobIdx + BobShift tells us
 					; which bob to use
 	move.l (a3,d0),a0		; Can use d0 as-is as it's either 0 or
 					; 4 which gives us the correct index 
