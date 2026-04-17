@@ -28,7 +28,8 @@ To run on [WinUAE](https://www.winuae.net/).
 * For WORKSPACE KB> enter 128
 * At the Ready prompt type r then hit return
 * At the FILENAME> prompt enter rmcdemo.S
-* Then type a then return to assemble and j then return to run. Click the left mouse button to exit the demo.
+* Then type `a` then return to assemble and `j` then return to run. Click the left mouse button to exit the demo.
+* If you want to save the executable then type `wo` and provide a filename.
 
 ## Future
 * NTSC support
